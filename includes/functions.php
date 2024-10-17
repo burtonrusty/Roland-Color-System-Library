@@ -42,3 +42,28 @@ function rcs_check_enabled_palettes() {
 }
 
 add_action('init', 'rcs_check_enabled_palettes');
+
+// Register the REST API endpoint
+add_action('rest_api_init', function () {
+    register_rest_route('rcs/v1', '/user-colors/(?P<user_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'rcs_get_user_colors',
+        'permission_callback' => '__return_true',
+    ));
+});
+
+// Callback function to get user colors
+function rcs_get_user_colors($data)
+{
+    global $wpdb;
+    $user_id = $data['user_id'];
+    $table_name = $wpdb->prefix . 'user_team_colors';
+
+    // Query the database for user colors
+    $results = $wpdb->get_results($wpdb->prepare(
+        "SELECT color FROM $table_name WHERE user_id = %d",
+        $user_id
+    ));
+
+    return $results;
+}
